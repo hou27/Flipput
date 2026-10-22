@@ -52,7 +52,7 @@ bash build.sh
 
 | Trigger                    | How                                                     |
 | -------------------------- | ------------------------------------------------------- |
-| Long right-click (default) | Hold the right button for 0.55s, then release           |
+| Long right-click (default) | Hold the right button (0.55s by default), then release  |
 | Double right-click         | Right-click twice quickly at the same spot (within 5pt) |
 
 - You can change it in menu bar → **호출 방식** (Trigger), and it's kept after restarting.
@@ -67,7 +67,7 @@ bash build.sh
 - **입력 언어** (Input source): pick one manually, anytime
 - **우클릭 전환 일시 중지 / 재개** (Pause / Resume)
 - **호출 방식** (Trigger): long right-click / double right-click
-- **누르는 시간** (Hold time): 0.35 / 0.55 / 0.8s
+- **누르는 시간** (Hold time): slider from 0.2 to 1.5s (0.05s steps), or presets 0.35 / 0.55 / 0.8s
 - **종료** (Quit)
 
 ## Development
@@ -80,6 +80,7 @@ bash build.sh  # build + ad-hoc sign
 - `Sources/main.swift`: menu bar UI, event tap, long press, input source switching
 - `Sources/DoubleClickGesture.swift`: double right-click detection
 - `Sources/InputSelection.swift`: picks the other source when there are two
+- `Sources/HoldTime.swift`: keeps the hold time in range
 - `Scripts/make_icon.swift`: draws the app icon (`build.sh` turns it into `AppIcon.icns`)
 - `Scripts/probe_events.swift`: prints the mouse events an event tap sees, for debugging remote input
 - `Tests/main.swift`: tests

@@ -15,7 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var doubleTimer: Timer?
     var doubleClickMode = UserDefaults.standard.bool(forKey: "doubleClickMode")
     var enabled = true
-    var threshold: Double = UserDefaults.standard.object(forKey: "holdSeconds") as? Double ?? 0.55
+    var threshold = normalizedHoldSeconds(UserDefaults.standard.object(forKey: "holdSeconds") as? Double ?? defaultHoldSeconds)
+    weak var holdLabel: NSTextField?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -215,6 +216,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         trigger.submenu = triggers; menu.addItem(trigger)
         let timing = NSMenuItem(title: "누르는 시간", action: nil, keyEquivalent: "")
         let submenu = NSMenu()
+        let slider = NSSlider(value: threshold, minValue: holdSecondsRange.lowerBound, maxValue: holdSecondsRange.upperBound,
+                              target: self, action: #selector(slideThreshold(_:)))
+        slider.isContinuous = true
+        slider.frame = NSRect(x: 20, y: 6, width: 150, height: 20)
+        let label = NSTextField(labelWithString: String(format: "%.2f초", threshold))
+        label.font = .menuFont(ofSize: 0)
+        label.frame = NSRect(x: 176, y: 7, width: 56, height: 17)
+        let row = NSView(frame: NSRect(x: 0, y: 0, width: 240, height: 32))
+        row.addSubview(slider); row.addSubview(label)
+        let sliderItem = NSMenuItem(); sliderItem.view = row
+        submenu.addItem(sliderItem); submenu.addItem(.separator())
+        holdLabel = label
         for seconds in [0.35, 0.55, 0.8] {
             let entry = NSMenuItem(title: String(format: "%.2f초", seconds), action: #selector(setThreshold(_:)), keyEquivalent: "")
             entry.target = self; entry.representedObject = seconds
@@ -249,8 +262,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         rebuildStatusMenu()
     }
     @objc func setThreshold(_ sender: NSMenuItem) {
-        threshold = sender.representedObject as? Double ?? 0.55
+        threshold = sender.representedObject as? Double ?? defaultHoldSeconds
         UserDefaults.standard.set(threshold, forKey: "holdSeconds"); rebuildStatusMenu()
+    }
+    // Updates the open menu in place instead of rebuilding it while the slider is being dragged.
+    @objc func slideThreshold(_ sender: NSSlider) {
+        threshold = normalizedHoldSeconds(sender.doubleValue)
+        UserDefaults.standard.set(threshold, forKey: "holdSeconds")
+        holdLabel?.stringValue = String(format: "%.2f초", threshold)
+        for entry in sender.enclosingMenuItem?.menu?.items ?? [] {
+            if let seconds = entry.representedObject as? Double { entry.state = abs(threshold - seconds) < 0.01 ? .on : .off }
+        }
     }
     @objc func quit() { releasePending(); NSApplication.shared.terminate(nil) }
     func showError(_ message: String) {

@@ -54,4 +54,9 @@ check(alternateInputSource(ids: ["ABC", "Korean"], current: "Korean") == "ABC", 
 check(alternateInputSource(ids: ["ABC"], current: "ABC") == nil, "One source uses menu")
 check(alternateInputSource(ids: ["ABC", "Korean", "Japanese"], current: "ABC") == nil, "Three sources use menu")
 check(alternateInputSource(ids: ["ABC", "Korean"], current: "Other") == nil, "Unknown current source uses menu")
-print("Passed \(count) total gesture and language selection checks.")
+
+check(normalizedHoldSeconds(0.35) == 0.35 && normalizedHoldSeconds(0.55) == 0.55 && normalizedHoldSeconds(0.8) == 0.8, "Presets are kept")
+check(normalizedHoldSeconds(0.62) == 0.6 && normalizedHoldSeconds(0.63) == 0.65, "Hold time snaps to 0.05 s")
+check(normalizedHoldSeconds(0.05) == 0.2 && normalizedHoldSeconds(9) == 1.5, "Hold time stays in slider range")
+check(normalizedHoldSeconds(.nan) == defaultHoldSeconds, "Invalid stored hold time falls back to default")
+print("Passed \(count) total gesture, language selection and hold time checks.")
