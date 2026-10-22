@@ -49,3 +49,17 @@
 - 확인: 1024px, 64px 렌더링을 직접 열어 시안과 같은 배치임을 확인. 시안대로 `가`는 앞 카드에 절반쯤 가려지고, 작은 크기에서는 커서와 카드 형태만 구분됨.
 - 리소스가 추가되어 서명(cdhash)이 바뀌므로, 이미 설치한 Flipput을 교체하면 손쉬운 사용 권한을 다시 허용해야 함.
 - Finder·Dock·손쉬운 사용 목록에서의 실제 표시는 아직 미확인.
+
+## 맥미니 원격 사용 문제 (0.2.0, 원인 확인·수정, 실기 미확인)
+
+- 환경: 맥미니 Apple Silicon, macOS 26.1, MacBook에서 Chrome Remote Desktop으로 접속. Flipput 실행 중, 손쉬운 사용 권한 정상(tccd 로그에 서명 불일치 없음), 이전 Hangul Menu는 실행 중이 아님.
+- 사용자 보고: Flipput이 켜져 있으면 길게 우클릭, 우클릭 더블클릭뿐 아니라 일반 우클릭도 전혀 동작하지 않음. "우클릭 전환 일시 중지" 상태에서는 우클릭이 정상. 맥북 로컬에서는 정상 동작. 맥북 쪽 Flipput을 종료해도 동일.
+- 참고: Chromium 소스(`remoting/host/input_injector_mac.cc`)에 따르면 Chrome Remote Desktop 호스트는 macOS 26 이하에서 버튼 상태를 넘기는 구식 `CGPostMouseEvent`로 마우스를 주입하고, down/up 판단은 OS가 직전 상태와 비교해 정함.
+- 원인 확인(`Scripts/probe_events.swift`, 맥미니에서 실행):
+  - pass 모드: 짧은 우클릭은 `rightDown` → 약 0.1초 뒤 `rightUp`, 길게 누르면 `rightDown` → `rightDragged` → `rightUp`으로 정상. 이벤트 출처는 모두 Chrome Remote Desktop 호스트 프로세스이고 HID 버튼 상태는 항상 0.
+  - swallow 모드(세션 탭에서 `rightDown`을 버림): 이후 `rightUp`이 한 번도 오지 않음. 버튼을 누른 채 들어오는 후속 입력은 `rightDragged`가 아니라 새 `rightDown`(click=2 등)으로 다시 들어옴.
+  - 결론: 세션 탭에서 down을 가로채면 세션의 버튼 상태가 눌림으로 바뀌지 않아, 구식 주입 방식에서는 손을 떼도 up이 만들어지지 않음. Flipput은 up을 기다리다 원래 클릭을 전달하지 못함.
+- annotated 탭 확인: 앱으로 라우팅된 뒤 단계(`cgAnnotatedSessionEventTap`)에서 `rightDown`을 버리면, 그 시점에 세션 버튼 상태는 이미 눌림(sessionRight=1)이고 손을 뗄 때 `rightUp`이 정상으로 옴(약 1.5초, 0.8초 누름 각각 확인).
+- 수정: Flipput의 이벤트 탭을 `cgSessionEventTap` → `cgAnnotatedSessionEventTap`으로 옮김. 재전달(replay)은 기존대로 세션 탭으로 보냄. 버전은 0.2.0 유지.
+- 수정 후 자동 검사: `bash test.sh` 19개 통과, `bash build.sh` 빌드·서명 검증 통과.
+- 수정 후 실기 확인: 아직 안 함. 맥미니(원격)와 맥북(로컬) 모두에서 단일 우클릭, 길게 우클릭, 우클릭 더블클릭, 드래그, 보조 키 + 우클릭, 일시 중지 확인 필요.

@@ -81,4 +81,5 @@ bash build.sh  # build + ad-hoc sign
 - `Sources/DoubleClickGesture.swift`: double right-click detection
 - `Sources/InputSelection.swift`: picks the other source when there are two
 - `Scripts/make_icon.swift`: draws the app icon (`build.sh` turns it into `AppIcon.icns`)
+- `Scripts/probe_events.swift`: prints the mouse events an event tap sees, for debugging remote input
 - `Tests/main.swift`: tests

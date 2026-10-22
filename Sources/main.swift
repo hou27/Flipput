@@ -34,7 +34,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             | (CGEventMask(1) << CGEventType.leftMouseDown.rawValue)
             | (CGEventMask(1) << CGEventType.otherMouseDown.rawValue)
             | (CGEventMask(1) << CGEventType.scrollWheel.rawValue)
-        tap = CGEvent.tapCreate(tap: .cgSessionEventTap, place: .headInsertEventTap,
+        // Tap after the session has recorded button state. Chrome Remote Desktop on macOS 26 and earlier posts
+        // button state (CGPostMouseEvent); a down dropped at the session tap leaves no state, so no up follows.
+        tap = CGEvent.tapCreate(tap: .cgAnnotatedSessionEventTap, place: .headInsertEventTap,
             options: .defaultTap, eventsOfInterest: mask, callback: { _, type, event, context in
                 guard let context else { return Unmanaged.passUnretained(event) }
                 return Unmanaged<AppDelegate>.fromOpaque(context).takeUnretainedValue().handle(type, event)
