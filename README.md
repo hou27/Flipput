@@ -1,8 +1,8 @@
 # Flipput
 
-> A tiny macOS menu bar app that switches the Mac's input source (e.g., between Korean and English) with a right-click. It can be used to switch between Korean and English on a remote Mac when accessing it from a local machine through Chrome Remote Desktop.
+> A tiny macOS menu bar app that switches the Mac's input source (e.g., between Korean and English) with a right-click or a key. It can be used to switch between Korean and English on a remote Mac when accessing it from a local machine through Chrome Remote Desktop.
 
-> 우클릭 한 번으로 Mac의 입력 소스(e.g., 한/영 전환)를 전환하는 macOS용 메뉴 막대 앱입니다. Chrome 원격 데스크톱을 통해 로컬 호스트에서 원격 Mac을 사용할 때, 원격 Mac의 한국어와 영어 입력 전환이 불편한 것을 간단히 해소하기 위해 만든 프로그램입니다.
+> 우클릭이나 키 하나로 Mac의 입력 소스(e.g., 한/영 전환)를 전환하는 macOS용 메뉴 막대 앱입니다. Chrome 원격 데스크톱을 통해 로컬 호스트에서 원격 Mac을 사용할 때, 원격 Mac의 한국어와 영어 입력 전환이 불편한 것을 간단히 해소하기 위해 만든 프로그램입니다.
 
 ## Main Technologies Used
 
@@ -50,18 +50,18 @@ bash build.sh
 
 ## 4. Now you can switch Korean/English with a right-click or a key
 
-| Trigger                    | How                                                     |
-| -------------------------- | ------------------------------------------------------- |
-| Long right-click (default) | Hold the right button (0.55s by default), then release  |
-| Double right-click         | Right-click twice quickly at the same spot (within 5pt) |
+| Trigger                    | How                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| Long right-click (default) | Hold the right button (0.55s by default), then release                       |
+| Double right-click         | Right-click twice quickly at the same spot (within 5pt)                      |
 | Switch key                 | Tap the chosen modifier alone (within 0.5s), or press the chosen F13–F19 key |
 
-- You can change it in menu bar → **호출 방식** (Trigger), and it's kept after restarting.
+- You can change the right-click trigger in menu bar → **호출 방식** (Trigger). All settings are kept after restarting.
 - Long right-click: a short right-click is sent to the app when you release it, so context menus open a bit later than usual.
 - Double right-click: uses the system double-click speed. The first right-click is held for that time, so a single right-click menu also opens a bit late.
 - Right-drag (more than 5pt) and ⌘ / ⌃ / ⌥ / ⇧ + right-click are left to the app.
 - In the picker menu, Esc or clicking outside cancels.
-- The switch key works alongside either right-click trigger. Pick it in menu bar → **전환 키** (Switch key): a left or right Option, Command, Control or Shift tapped alone, one of F13–F19, or **사용 안 함** (off). Keys are only watched, never blocked, so shortcuts keep working.
+- The switch key works alongside either right-click trigger. Pick it in menu bar → **전환 키** (Switch key), right Option by default: a left or right Option, Command, Control or Shift tapped alone, one of F13–F19, or **사용 안 함** (off). Keys are only watched, never blocked, so shortcuts keep working.
 - The switch key doesn't work while secure input is on (password fields, Secure Keyboard Entry in Terminal/iTerm).
 
 ## 5. Try the menu bar options too!
@@ -77,8 +77,8 @@ bash build.sh
 ## Development
 
 ```bash
-bash test.sh   # logic tests (no real mouse events)
-bash build.sh  # build + ad-hoc sign
+bash test.sh   # logic tests (no real input events)
+bash build.sh  # build + app icon + ad-hoc sign
 ```
 
 - `Sources/main.swift`: menu bar UI, event tap, long press, input source switching
