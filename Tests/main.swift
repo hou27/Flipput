@@ -74,4 +74,20 @@ check(!optionKey(61, [.maskAlternate, .maskCommand], 4) && !optionKey(61, .maskC
 check(!optionKey(61, [], 5), "Release without a recorded press is ignored")
 check(!optionKey(61, [.maskAlternate, .maskAlphaShift], 6) && optionKey(61, .maskAlphaShift, 6.1), "Caps Lock state does not block the tap")
 check(!optionKey(58, .maskAlternate, 7) && !optionKey(58, [], 7.1), "Left Option does not switch")
-print("Passed \(count) total gesture, language selection, hold time and Option tap checks.")
+
+let trigger = KeyTrigger()
+func key(_ type: CGEventType, _ code: Int64, _ flags: CGEventFlags = [], _ time: Double, isRepeat: Bool = false) -> Bool {
+    trigger.handle(type, code: code, flags: flags, isRepeat: isRepeat, now: time)
+}
+trigger.select(nil)
+check(!key(.flagsChanged, 61, .maskAlternate, 0) && !key(.flagsChanged, 61, [], 0.1) && !key(.keyDown, 79, [], 0.2), "No trigger key never switches")
+trigger.select(triggerKeys.first { $0.code == 54 })
+check(!key(.flagsChanged, 54, .maskCommand, 1) && key(.flagsChanged, 54, [], 1.1), "Right Command tap switches when selected")
+check(!key(.flagsChanged, 61, .maskAlternate, 2) && !key(.flagsChanged, 61, [], 2.1), "Unselected right Option does not switch")
+_ = key(.flagsChanged, 54, .maskCommand, 3)
+check(!key(.keyDown, 8, .maskCommand, 3.05) && !key(.flagsChanged, 54, [], 3.1), "Command shortcut does not switch")
+trigger.select(triggerKeys.first { $0.title == "F18" })
+check(key(.keyDown, 79, [], 4), "F18 switches on key down when selected")
+check(!key(.keyDown, 79, [], 4.5, isRepeat: true) && !key(.keyDown, 80, [], 5) && !key(.flagsChanged, 61, [], 6),
+      "F18 repeat, other keys and modifiers do not switch")
+print("Passed \(count) total gesture, language selection, hold time and key trigger checks.")

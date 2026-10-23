@@ -14,8 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     let doubleGesture = DoubleClickGesture()
     var doubleTimer: Timer?
     var doubleClickMode = UserDefaults.standard.bool(forKey: "doubleClickMode")
-    let optionTap = ModifierTap(keyCode: 61, flag: .maskAlternate)  // kVK_RightOption
-    var optionTrigger = UserDefaults.standard.object(forKey: "rightOptionTrigger") as? Bool ?? true
+    let keyTrigger = KeyTrigger()
     var enabled = true
     var threshold = normalizedHoldSeconds(UserDefaults.standard.object(forKey: "holdSeconds") as? Double ?? defaultHoldSeconds)
     weak var holdLabel: NSTextField?
@@ -23,6 +22,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.title = "한/A"
+        let code = UserDefaults.standard.object(forKey: "triggerKeyCode") as? Int ?? Int(defaultTriggerKeyCode)
+        keyTrigger.select(triggerKeys.first { $0.code == Int64(code) })
         rebuildStatusMenu()
         installTap()
         Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.refreshTitle() }
@@ -67,16 +68,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard enabled else { return Unmanaged.passUnretained(event) }
         // Keys are only observed, never held back, and stay out of the right-click recognizers.
         if type == .keyDown || type == .flagsChanged {
-            if type == .keyDown {
-                optionTap.interrupt()
-            } else if optionTrigger && optionTap.flagsChanged(code: event.getIntegerValueField(.keyboardEventKeycode),
-                                                             flags: event.flags, now: ProcessInfo.processInfo.systemUptime,
-                                                             limit: 0.5) {
+            if keyTrigger.handle(type, code: event.getIntegerValueField(.keyboardEventKeycode), flags: event.flags,
+                                 isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
+                                 now: ProcessInfo.processInfo.systemUptime) {
                 DispatchQueue.main.async { [weak self] in self?.showLanguageMenu() }
             }
             return Unmanaged.passUnretained(event)
         }
-        optionTap.interrupt()
+        keyTrigger.interrupt()
         if doubleClickMode { return handleDoubleClick(type, event) }
         switch type {
         case .rightMouseDown:
@@ -229,11 +228,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             entry.state = doubleClickMode == useDouble ? .on : .off
             triggers.addItem(entry)
         }
-        triggers.addItem(.separator())
-        let option = NSMenuItem(title: "오른쪽 Option 단독 누르기", action: #selector(toggleOptionTrigger), keyEquivalent: "")
-        option.target = self; option.state = optionTrigger ? .on : .off
-        triggers.addItem(option)
         trigger.submenu = triggers; menu.addItem(trigger)
+        let keyItem = NSMenuItem(title: "전환 키", action: nil, keyEquivalent: "")
+        let keys = NSMenu()
+        let off = NSMenuItem(title: "사용 안 함", action: #selector(setTriggerKey(_:)), keyEquivalent: "")
+        off.target = self; off.representedObject = -1; off.state = keyTrigger.key == nil ? .on : .off
+        keys.addItem(off)
+        for (header, list) in [("혼자 눌렀다 떼기", modifierTriggerKeys), ("누르면 바로", functionTriggerKeys)] {
+            keys.addItem(.separator())
+            keys.addItem(NSMenuItem(title: header, action: nil, keyEquivalent: ""))
+            for key in list {
+                let entry = NSMenuItem(title: key.title, action: #selector(setTriggerKey(_:)), keyEquivalent: "")
+                entry.target = self; entry.representedObject = Int(key.code)
+                entry.state = keyTrigger.key?.code == key.code ? .on : .off
+                keys.addItem(entry)
+            }
+        }
+        keyItem.submenu = keys; menu.addItem(keyItem)
         let timing = NSMenuItem(title: "누르는 시간", action: nil, keyEquivalent: "")
         let submenu = NSMenu()
         let slider = NSSlider(value: threshold, minValue: holdSecondsRange.lowerBound, maxValue: holdSecondsRange.upperBound,
@@ -281,9 +292,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         UserDefaults.standard.set(doubleClickMode, forKey: "doubleClickMode")
         rebuildStatusMenu()
     }
-    @objc func toggleOptionTrigger() {
-        optionTrigger.toggle()
-        UserDefaults.standard.set(optionTrigger, forKey: "rightOptionTrigger"); rebuildStatusMenu()
+    @objc func setTriggerKey(_ sender: NSMenuItem) {
+        let code = sender.representedObject as? Int ?? -1
+        keyTrigger.select(triggerKeys.first { $0.code == Int64(code) })
+        UserDefaults.standard.set(code, forKey: "triggerKeyCode"); rebuildStatusMenu()
     }
     @objc func setThreshold(_ sender: NSMenuItem) {
         threshold = sender.representedObject as? Double ?? defaultHoldSeconds
