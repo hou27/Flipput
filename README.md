@@ -82,5 +82,5 @@ bash build.sh  # build + ad-hoc sign
 - `Sources/InputSelection.swift`: picks the other source when there are two
 - `Sources/HoldTime.swift`: keeps the hold time in range
 - `Scripts/make_icon.swift`: draws the app icon (`build.sh` turns it into `AppIcon.icns`)
-- `Scripts/probe_events.swift`: prints the mouse events an event tap sees, for debugging remote input
+- `Scripts/probe_events.swift`: prints the mouse or key events an event tap sees, for debugging remote input
 - `Tests/main.swift`: tests
