@@ -59,4 +59,19 @@ check(normalizedHoldSeconds(0.35) == 0.35 && normalizedHoldSeconds(0.55) == 0.55
 check(normalizedHoldSeconds(0.62) == 0.6 && normalizedHoldSeconds(0.63) == 0.65, "Hold time snaps to 0.05 s")
 check(normalizedHoldSeconds(0.05) == 0.2 && normalizedHoldSeconds(9) == 1.5, "Hold time stays in slider range")
 check(normalizedHoldSeconds(.nan) == defaultHoldSeconds, "Invalid stored hold time falls back to default")
-print("Passed \(count) total gesture, language selection and hold time checks.")
+
+let option = ModifierTap(keyCode: 61, flag: .maskAlternate)
+func optionKey(_ code: Int64, _ flags: CGEventFlags, _ time: Double) -> Bool {
+    option.flagsChanged(code: code, flags: flags, now: time, limit: 0.5)
+}
+check(!optionKey(61, .maskAlternate, 0) && optionKey(61, [], 0.12), "Lone right Option tap switches")
+check(!optionKey(61, .maskAlternate, 1) && !optionKey(61, [], 1.6), "Held right Option does not switch")
+_ = optionKey(61, .maskAlternate, 2); option.interrupt()
+check(!optionKey(61, [], 2.1), "Key or click while Option is held cancels the tap")
+_ = optionKey(61, .maskAlternate, 3); _ = optionKey(56, [.maskAlternate, .maskShift], 3.05)
+check(!optionKey(61, .maskShift, 3.1), "Another modifier cancels the tap")
+check(!optionKey(61, [.maskAlternate, .maskCommand], 4) && !optionKey(61, .maskCommand, 4.1), "Option with Command held is not a lone tap")
+check(!optionKey(61, [], 5), "Release without a recorded press is ignored")
+check(!optionKey(61, [.maskAlternate, .maskAlphaShift], 6) && optionKey(61, .maskAlphaShift, 6.1), "Caps Lock state does not block the tap")
+check(!optionKey(58, .maskAlternate, 7) && !optionKey(58, [], 7.1), "Left Option does not switch")
+print("Passed \(count) total gesture, language selection, hold time and Option tap checks.")

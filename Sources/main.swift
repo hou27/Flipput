@@ -14,6 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     let doubleGesture = DoubleClickGesture()
     var doubleTimer: Timer?
     var doubleClickMode = UserDefaults.standard.bool(forKey: "doubleClickMode")
+    let optionTap = ModifierTap(keyCode: 61, flag: .maskAlternate)  // kVK_RightOption
+    var optionTrigger = UserDefaults.standard.object(forKey: "rightOptionTrigger") as? Bool ?? true
     var enabled = true
     var threshold = normalizedHoldSeconds(UserDefaults.standard.object(forKey: "holdSeconds") as? Double ?? defaultHoldSeconds)
     weak var holdLabel: NSTextField?
@@ -35,6 +37,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             | (CGEventMask(1) << CGEventType.leftMouseDown.rawValue)
             | (CGEventMask(1) << CGEventType.otherMouseDown.rawValue)
             | (CGEventMask(1) << CGEventType.scrollWheel.rawValue)
+            | (CGEventMask(1) << CGEventType.keyDown.rawValue)
+            | (CGEventMask(1) << CGEventType.flagsChanged.rawValue)
         // Tap after the session has recorded button state. Chrome Remote Desktop on macOS 26 and earlier posts
         // button state (CGPostMouseEvent); a down dropped at the session tap leaves no state, so no up follows.
         tap = CGEvent.tapCreate(tap: .cgAnnotatedSessionEventTap, place: .headInsertEventTap,
@@ -61,6 +65,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return Unmanaged.passUnretained(event)
         }
         guard enabled else { return Unmanaged.passUnretained(event) }
+        // Keys are only observed, never held back, and stay out of the right-click recognizers.
+        if type == .keyDown || type == .flagsChanged {
+            if type == .keyDown {
+                optionTap.interrupt()
+            } else if optionTrigger && optionTap.flagsChanged(code: event.getIntegerValueField(.keyboardEventKeycode),
+                                                             flags: event.flags, now: ProcessInfo.processInfo.systemUptime,
+                                                             limit: 0.5) {
+                DispatchQueue.main.async { [weak self] in self?.showLanguageMenu() }
+            }
+            return Unmanaged.passUnretained(event)
+        }
+        optionTap.interrupt()
         if doubleClickMode { return handleDoubleClick(type, event) }
         switch type {
         case .rightMouseDown:
@@ -213,6 +229,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             entry.state = doubleClickMode == useDouble ? .on : .off
             triggers.addItem(entry)
         }
+        triggers.addItem(.separator())
+        let option = NSMenuItem(title: "오른쪽 Option 단독 누르기", action: #selector(toggleOptionTrigger), keyEquivalent: "")
+        option.target = self; option.state = optionTrigger ? .on : .off
+        triggers.addItem(option)
         trigger.submenu = triggers; menu.addItem(trigger)
         let timing = NSMenuItem(title: "누르는 시간", action: nil, keyEquivalent: "")
         let submenu = NSMenu()
@@ -260,6 +280,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         doubleClickMode = sender.representedObject as? Bool ?? false
         UserDefaults.standard.set(doubleClickMode, forKey: "doubleClickMode")
         rebuildStatusMenu()
+    }
+    @objc func toggleOptionTrigger() {
+        optionTrigger.toggle()
+        UserDefaults.standard.set(optionTrigger, forKey: "rightOptionTrigger"); rebuildStatusMenu()
     }
     @objc func setThreshold(_ sender: NSMenuItem) {
         threshold = sender.representedObject as? Double ?? defaultHoldSeconds

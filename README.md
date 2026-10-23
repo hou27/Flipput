@@ -18,7 +18,7 @@
 
 ## Features
 
-- Switch Korean/English with a **long right-click** or a **double right-click**.
+- Switch Korean/English with a **long right-click**, a **double right-click**, or a **right Option tap**.
 - If there are _two_ input sources, it **switches to the other one right away** without a menu.
 - If there are more, it shows a **picker menu** next to the cursor.
 - It **selects the macOS input source directly** instead of faking keyboard shortcuts.
@@ -48,25 +48,28 @@ bash build.sh
 - Menu bar → **권한 적용 후 다시 연결** (Reconnect). If `!` is still there, quit and open the app again.
 - The input sources you use (e.g. ABC, 2-Set Korean) should be added in System Settings → Keyboard → Text Input → Input Sources.
 
-## 4. Now you can switch Korean/English with a right-click
+## 4. Now you can switch Korean/English with a right-click or the right Option key
 
 | Trigger                    | How                                                     |
 | -------------------------- | ------------------------------------------------------- |
 | Long right-click (default) | Hold the right button (0.55s by default), then release  |
 | Double right-click         | Right-click twice quickly at the same spot (within 5pt) |
+| Right Option tap           | Press and release the right Option key alone (within 0.5s) |
 
 - You can change it in menu bar → **호출 방식** (Trigger), and it's kept after restarting.
 - Long right-click: a short right-click is sent to the app when you release it, so context menus open a bit later than usual.
 - Double right-click: uses the system double-click speed. The first right-click is held for that time, so a single right-click menu also opens a bit late.
 - Right-drag (more than 5pt) and ⌘ / ⌃ / ⌥ / ⇧ + right-click are left to the app.
 - In the picker menu, Esc or clicking outside cancels.
+- Right Option tap works alongside either right-click trigger, and can be turned off in **호출 방식** → **오른쪽 Option 단독 누르기**. Keys are only watched, never blocked, so ⌥ shortcuts keep working.
+- Right Option tap doesn't work while secure input is on (password fields, Secure Keyboard Entry in Terminal/iTerm).
 
 ## 5. Try the menu bar options too!
 
 - `A` / `한`: current input source (`⏸` paused, `!` no permission)
 - **입력 언어** (Input source): pick one manually, anytime
 - **우클릭 전환 일시 중지 / 재개** (Pause / Resume)
-- **호출 방식** (Trigger): long right-click / double right-click
+- **호출 방식** (Trigger): long right-click / double right-click, and right Option tap on/off
 - **누르는 시간** (Hold time): slider from 0.2 to 1.5s (0.05s steps), or presets 0.35 / 0.55 / 0.8s
 - **종료** (Quit)
 
@@ -81,6 +84,7 @@ bash build.sh  # build + ad-hoc sign
 - `Sources/DoubleClickGesture.swift`: double right-click detection
 - `Sources/InputSelection.swift`: picks the other source when there are two
 - `Sources/HoldTime.swift`: keeps the hold time in range
+- `Sources/ModifierTap.swift`: recognizes a lone right Option tap
 - `Scripts/make_icon.swift`: draws the app icon (`build.sh` turns it into `AppIcon.icns`)
 - `Scripts/probe_events.swift`: prints the mouse or key events an event tap sees, for debugging remote input
 - `Tests/main.swift`: tests
