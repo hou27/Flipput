@@ -68,7 +68,7 @@ bash build.sh
 
 - `A` / `한`: current input source (`⏸` paused, `!` no permission)
 - **입력 언어** (Input source): pick one manually, anytime
-- **우클릭 전환 일시 중지 / 재개** (Pause / Resume)
+- **전환 일시 중지 / 재개** (Pause / Resume): stops both the right-click trigger and the switch key
 - **호출 방식** (Trigger): long right-click / double right-click
 - **전환 키** (Switch key): a modifier tapped alone, F13–F19, or off
 - **누르는 시간** (Hold time): slider from 0.2 to 1.5s (0.05s steps), or presets 0.35 / 0.55 / 0.8s

@@ -219,7 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(NSMenuItem(title: "Flipput · 맥미니에서 실행", action: nil, keyEquivalent: ""))
         let language = NSMenuItem(title: "입력 언어", action: nil, keyEquivalent: "")
         language.submenu = languageMenu(); menu.addItem(language)
-        add(menu, enabled ? "우클릭 전환 일시 중지" : "우클릭 전환 재개", #selector(toggle))
+        add(menu, enabled ? "전환 일시 중지" : "전환 재개", #selector(toggle))
         let trigger = NSMenuItem(title: "호출 방식", action: nil, keyEquivalent: "")
         let triggers = NSMenu()
         for (title, useDouble) in [("길게 우클릭", false), ("우클릭 더블클릭", true)] {

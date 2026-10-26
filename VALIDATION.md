@@ -101,6 +101,7 @@
   - 누르면 바로: F13~F19 (키 반복은 무시)
 - 기본값 오른쪽 Option. `triggerKeyCode` 키에 키 코드로 저장(-1은 사용 안 함). 이전 `rightOptionTrigger` 설정은 읽지 않음(main에 병합된 적 없는 설정).
 - 키 이벤트는 어떤 경우에도 가로채지 않음. F13~F19도 앱에 그대로 전달됨.
+- 메뉴 문구 "우클릭 전환 일시 중지/재개" → "전환 일시 중지/재개". 일시 중지는 원래부터 우클릭과 전환 키 모두에 적용됨.
 - 자동 검사: `bash test.sh` 37개 통과(전환 키 선택 6개 추가), `bash build.sh` 빌드·서명 검증 통과.
 - 원격 도착 여부: probe로 확인한 키는 왼쪽 Shift/Control/Option/Command와 오른쪽 Option/Control뿐. 오른쪽 Command/Shift와 F13~F19는 Chrome Remote Desktop으로 들어오는지 아직 모름.
 - 실기 확인: 아직 안 함. 메뉴 선택과 재실행 후 유지, 각 키의 전환, 단축키 입력 시 전환 안 됨, 우클릭 제스처 회귀 확인 필요.
